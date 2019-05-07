@@ -1,0 +1,163 @@
+	<section>
+		<div class="block no-padding">
+			<div class="container fluid">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="simple-text">
+							<h3>Got a question?</h3>
+							<span>We're here to help. Reach us out <a href="/contact">here</a></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<footer>
+		<div class="block">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-3 column">
+						<div class="widget">
+							<div class="about_widget">
+								<div class="logo">
+									<a href="/" title><img src="images/jmlogoblue1.jpg" alt></a>
+								</div>
+								<span>633/A-21, Gulzar Colony,Chinhat, Lucknow.</span>
+								<span>+91 8299 674 734</span>
+								<span>jobsmasterinfo@gmail.com</span>
+							</div><!-- About Widget -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="bottom-line">
+			<a href="#scrollup" class="scrollup" title><i class="la la-arrow-up"></i></a>
+		</div>
+	</footer>
+
+</div>
+
+<div class="account-popup-area signin-popup-box">
+	<div class="account-popup">
+		<span class="close-popup"><i class="la la-close"></i></span>
+		<h3>Post Job</h3>
+		<span>Post job to our portal to get started</span>
+		<form method='post' action='/postjob'>
+			<div class="cfield">
+				<input type="text" name='compname' placeholder="Comapany Name">
+				<i class="la la-user"></i>
+			</div>
+			<div class="cfield">
+				<input type="text" name='compemail' placeholder="Company email">
+				<i class="la la-envelope-o"></i>
+			</div>
+            <div class="cfield">
+				<input type="text" name='complocation' placeholder="Job Location">
+				<i class="la la-map-marker"></i>
+			</div>
+			<div class="cfield">
+				<input type="text" name='compjobtitle' placeholder="Job Title">
+				<i class="la la-info"></i>
+			</div>
+			<div class="cfield">
+				<input type="text" name='compsalary' placeholder="In-hand Salary">
+				<i class="la la-dollar"></i>
+			</div>
+			<div class="cfield">
+				<input type="text" name='compopening' placeholder="No. of openings">
+				<i class="la la-list"></i>
+			</div>
+            <div class="dropdown-field">
+				<select data-placeholder="Job Type" class="chosen" name='compjtype'>
+                    <optgroup label='Job type'>
+                        <option value='Full time'>Full-time</option>
+                        <option value='Part time'>Part-time</option>
+                        <option value='Contract'>Contract</option>
+                        <option value='Internship'>Internship</option>
+                    </optgroup>
+				</select>
+			</div>
+            <div class="dropdown-field">
+				<select data-placeholder="Experience" class="chosen" name='compjexperience'>
+                    <optgroup label='Job Experience'>
+                        <option value='0'>Fresher</option>
+                        <option value='0-1'>0-1 years</option>
+                        <option value='1-2'>1-2 years</option>
+                        <option value='2-5'>2-5 years</option>
+                        <option value='5+'>5+ years</option>
+                    </optgroup>
+				</select>
+			</div>
+            <div class="dropdown-field">
+				<select data-placeholder="Job Category" class="chosen" name='compjcategory'>
+                    <optgroup label='Job Category'>
+                        <option value='Accounts'>Accounts</option>
+                        <option value='Finance'>Finance</option>
+                        <option value='HR'>Human Resource</option>
+                        <option value='Art and Design'>Art & Design</option>
+                        <option value='Education and Training'>Education & Training</option>
+                        <option value='Telecommunications'>Telecommunications</option>
+                        <option value='Food Services'>Food Services</option>
+                        <option value='Construction'>Construction</option>
+                        <option value='Health'>Health</option>
+                        <option value='Insurance'>Insurance</option>
+                    </optgroup>
+                </select>
+			</div>
+            <div class="col-lg-12">
+                <span class="pf-title pjjd">Job description</span>
+                <div class="pf-field">
+                    <textarea name='compjdesc'></textarea>
+                </div>
+            </div>
+			<button type="submit">Post Job</button>
+		</form>
+	</div>
+</div><!-- LOGIN POPUP -->
+
+<div class="account-popup-area signup-popup-box">
+	<div class="account-popup">
+		<span class="close-popup"><i class="la la-close"></i></span>
+		<h3>Upload Resume</h3>
+        <span>Fill in your details, and we will reach out to you.</span>
+		<form method='post' enctype='multipart/form-data' action='/uploadResume'>
+			<div class="cfield">
+				<input type="text" name='candname' placeholder="Full Name">
+				<i class="la la-user"></i>
+			</div>
+			<div class="cfield">
+				<input type="text" name='candphone' placeholder="Phone Number">
+				<i class="la la-phone"></i>
+			</div>
+			<div class="cfield">
+				<input type="email" name='candemail' placeholder="Email">
+				<i class="la la-envelope-o"></i>
+			</div>
+            <div class="cfield">
+				<input type="text" name='candcity' placeholder="City">
+				<i class="la la-map"></i>
+			</div>
+            <div class="cfield">
+				<input type="file" name="file" id="file" class="inputfile" accept='.pdf'/>
+                <label for="file">Upload resume(pdf files only)</label>
+				<i class="la la-clipboard"></i>
+			</div>
+			<button type="submit">Post Resume</button>
+		</form>
+	</div>
+</div><!-- SIGNUP POPUP -->
+
+<script data-cfasync="false" src="js/email-decode.min.js"></script><script src="js/jquery.min.js" type="text/javascript"></script>
+<script src="js/modernizr.js" type="text/javascript"></script>
+<script src="js/script.js" type="text/javascript"></script>
+<script src="js/bootstrap.min.js" type="text/javascript"></script>
+<script src="js/wow.min.js" type="text/javascript"></script>
+<script src="js/slick.min.js" type="text/javascript"></script>
+<script src="js/parallax.js" type="text/javascript"></script>
+<script src="js/select-chosen.js" type="text/javascript"></script>
+
+</body>
+</html>
+
