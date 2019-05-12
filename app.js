@@ -8,7 +8,8 @@ var express					            = require("express"),
     nodeMailor                  = require("nodemailer"),
     rwg                         = require("random-word-generator"),
     dotenv                      = require('dotenv/config'),
-    upload                      = require('express-fileupload'),
+    // upload                      = require('express-fileupload'),
+    multer                      = require('multer'),
     generator                   = new rwg();
     
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,6 +23,17 @@ var PORT                    = process.env.PORT,
     TOMAIL                  = process.env.TOMAIL,
     PASSWORD                = process.env.PASSWORD,
     DB                      = process.env.DB;
+    
+var storage = multer.diskStorage({
+  destination: './public/resume',
+  function(req,file,cb){
+    cb(null,file.filename + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage
+});
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,10 +45,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 app.set("view engine","ejs");
 app.use(express.static(__dirname + "/public"));
-mongoose.connect("mongodb://localhost/tezzpolicy", {useMongoClient: true});
 app.use(expressSanitizer());
 app.use(methodOverride("_method"));
-app.use(upload());
+// app.use(upload());
 // app.use(flash());
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,92 +77,84 @@ app.get('/error',(req,res)=>{
 //   res.render('careerpage')
 // });
 
-app.post('/uploadResume',(req,res)=>{
-  if(req.files){
-    console.log(req.files.file);
-    var file=req.files.file,
-        filename=file.name;
-        prefix=generator.generate();
-        candCv=prefix+filename,
-        cvPath='./resume/'+candCv;
-    file.mv(cvPath,(err)=>{
-      if(err){
-        console.log(err);
-        res.redirect('/error');
-      }else{
-        let transporter = nodeMailor.createTransport({
-          host: 'smtp.gmail.com',
-          port:587,
-          secure: false,
-          auth: {
-            user: EMAIL,
-            pass: PASSWORD
-          },
-          tls:{
-            rejectUnauthorized:false
-          }
-        });
-        const output = `
-            <b>Jobs Master Alert</b>
-            <p>Your CV has successfully been uploaded to our portal.</p>
-            <h3>Contact Details</h3>
-            <p>Please verify your contact details</p>
-            <ul>  
-              <li>Name: ${req.body.candname}</li>
-              <li>Email: ${req.body.candemail}</li>
-              <li>Phone: ${req.body.candphone}</li>
-              <li>City: ${req.body.candcity}</li>
-            </ul>`;
-        
-        const userRecord = `
-            <b>Jobs Master Alert</b>
-            <p>A new candidate uploaded their CV</p>
-            <h3>Contact Details</h3>
-            <ul>  
-              <li>Name: ${req.body.candname}</li>
-              <li>Email: ${req.body.candemail}</li>
-              <li>Phone: ${req.body.candphone}</li>
-              <li>City: ${req.body.candcity}</li>
-            </ul>`;
+app.post('/uploadResume',upload.single('file'),(req,res)=>{
+  const file=req.file;
+  if(file){
+    console.log(req.file);
+    var filename=file.filename;
+    var candCv=filename,
+        cvPath='./public/resume/'+candCv;
+      let transporter = nodeMailor.createTransport({
+        host: 'smtp.gmail.com',
+        port:587,
+        secure: false,
+        auth: {
+          user: EMAIL,
+          pass: PASSWORD
+        },
+        tls:{
+          rejectUnauthorized:false
+        }
+      });
+      const output = `
+          <b>Jobs Master Alert</b>
+          <p>Your CV has successfully been uploaded to our portal.</p>
+          <h3>Contact Details</h3>
+          <p>Please verify your contact details</p>
+          <ul>  
+            <li>Name: ${req.body.candname}</li>
+            <li>Email: ${req.body.candemail}</li>
+            <li>Phone: ${req.body.candphone}</li>
+            <li>City: ${req.body.candcity}</li>
+          </ul>`;
       
-        let mailOptions= {
-          from:EMAIL,
-          to: TOMAIL,
-          subject: 'Job Masters-Candidate request',
-          text: 'Candidate Request',
-          attachments:[{
-            filename: candCv,
-            path: cvPath,
-            contentType: 'application/pdf'
-          }],
-          html: userRecord
-        };
-        let mailOptions2= {
-          from:EMAIL,
-          to: req.body.candemail,
-          subject: 'Job Master',
-          text: 'Please verify your details',
-          html: output
-        };
-        transporter.sendMail(mailOptions2,(err,info)=>{
-          if(err){
-            console.log(err);
-            return res.redirect('/error');
-          }
-          console.log('Message: %s sent: %s',info.messageId,info.response);
-        });
-        transporter.sendMail(mailOptions,(err,info)=>{
-          if(err){
-            console.log(err);
-            return res.redirect('/error');
-          }
-          console.log('Message: %s sent: %s',info.messageId,info.response);
-          res.redirect('/');
-        });
-      }
-    });
-  }
-  
+      const userRecord = `
+          <b>Jobs Master Alert</b>
+          <p>A new candidate uploaded their CV</p>
+          <h3>Contact Details</h3>
+          <ul>  
+            <li>Name: ${req.body.candname}</li>
+            <li>Email: ${req.body.candemail}</li>
+            <li>Phone: ${req.body.candphone}</li>
+            <li>City: ${req.body.candcity}</li>
+          </ul>`;
+    
+      let mailOptions= {
+        from:EMAIL,
+        to: TOMAIL,
+        subject: 'Job Masters-Candidate request',
+        text: 'Candidate Request',
+        attachments:[{
+          filename: candCv,
+          path: cvPath,
+          contentType: 'application/pdf'
+        }],
+        html: userRecord
+      };
+      let mailOptions2= {
+        from:EMAIL,
+        to: req.body.candemail,
+        subject: 'Job Master',
+        text: 'Please verify your details',
+        html: output
+      };
+      transporter.sendMail(mailOptions2,(err,info)=>{
+        if(err){
+          console.log(err);
+          return res.redirect('/error');
+        }
+        console.log('Message: %s sent: %s',info.messageId,info.response);
+      });
+      transporter.sendMail(mailOptions,(err,info)=>{
+        if(err){
+          console.log(err);
+          return res.redirect('/error');
+        }
+        console.log('Message: %s sent: %s',info.messageId,info.response);
+        res.redirect('/');
+      });
+    }
+  // res.redirect('/error');
 });
 
 app.post('/postjob',(req,res)=>{
