@@ -27,7 +27,7 @@ var PORT                    = process.env.PORT,
 var storage = multer.diskStorage({
   destination: './public/resume',
   function(req,file,cb){
-    cb(null,file.filename + '-' + Date.now() + path.extname(file.originalname));
+    cb(null,file.originalname);
   }
 });
 
@@ -45,6 +45,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 app.set("view engine","ejs");
 app.use(express.static(__dirname + "/public"));
+mongoose.connect(DB,{useMongoClient:true});
 app.use(expressSanitizer());
 app.use(methodOverride("_method"));
 // app.use(upload());
@@ -138,19 +139,19 @@ app.post('/uploadResume',upload.single('file'),(req,res)=>{
         text: 'Please verify your details',
         html: output
       };
-      transporter.sendMail(mailOptions2,(err,info)=>{
-        if(err){
-          console.log(err);
-          return res.redirect('/error');
-        }
-        console.log('Message: %s sent: %s',info.messageId,info.response);
-      });
       transporter.sendMail(mailOptions,(err,info)=>{
         if(err){
           console.log(err);
-          return res.redirect('/error');
+          // return res.redirect('/error');
         }
-        console.log('Message: %s sent: %s',info.messageId,info.response);
+        console.log(info);
+      });
+      transporter.sendMail(mailOptions2,(err,info)=>{
+        if(err){
+          console.log(err);
+          // return res.redirect('/error');
+        }
+        // console.log('Message: %s sent: %s',info.messageId,info.response);
         res.redirect('/');
       });
     }
@@ -234,14 +235,14 @@ app.post('/postjob',(req,res)=>{
   transporter.sendMail(mailOptions2,(err,info)=>{
     if(err){
       console.log(err);
-      return res.redirect('/error');
+      // return res.redirect('/error');
     }
     console.log('Message: %s sent: %s',info.messageId,info.response);
   });
   transporter.sendMail(mailOptions,(err,info)=>{
     if(err){
       console.log(err);
-      return res.redirect('/error');
+      // return res.redirect('/error');
     }
     console.log('Message: %s sent: %s',info.messageId,info.response);
     res.redirect('/');
