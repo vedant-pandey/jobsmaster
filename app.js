@@ -141,14 +141,14 @@ app.post('/uploadResume',upload.single('file'),(req,res)=>{
       };
       transporter.sendMail(mailOptions,(err,info)=>{
         if(err){
-          console.log(err);
+          return console.log(err);
           // return res.redirect('/error');
         }
         console.log(info);
       });
       transporter.sendMail(mailOptions2,(err,info)=>{
         if(err){
-          console.log(err);
+          return console.log(err);
           // return res.redirect('/error');
         }
         // console.log('Message: %s sent: %s',info.messageId,info.response);
