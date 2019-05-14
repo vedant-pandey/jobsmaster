@@ -2,12 +2,14 @@ var express					            = require("express"),
     app                         = express(),
     methodOverride			        = require("method-override"),
     mongoose				            = require("mongoose"),
+    MongoClient                 = require('mongodb').MongoClient,
     flash                       = require("connect-flash"),
     expressSanitizer            = require("express-sanitizer"),
     bodyParser                  = require("body-parser"),
     nodeMailor                  = require("nodemailer"),
     rwg                         = require("random-word-generator"),
     dotenv                      = require('dotenv/config'),
+    fs                          = require('fs'),
     // upload                      = require('express-fileupload'),
     multer                      = require('multer'),
     generator                   = new rwg();
@@ -22,7 +24,8 @@ var PORT                    = process.env.PORT,
     EMAIL                   = process.env.EMAIL,
     TOMAIL                  = process.env.TOMAIL,
     PASSWORD                = process.env.PASSWORD,
-    DB                      = process.env.DB;
+    DB                      = process.env.DB,
+    DBNAME                  = process.env.DBNAME;
     
 var storage = multer.diskStorage({
   destination: './public/resume',
@@ -35,6 +38,19 @@ const upload = multer({
   storage: storage
 });
 
+var transporter = nodeMailor.createTransport({
+  host: 'smtp.gmail.com',
+  port:587,
+  secure: false,
+  auth: {
+    user: EMAIL,
+    pass: PASSWORD
+  },
+  tls:{
+    rejectUnauthorized:false
+  }
+});
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   /////////////////
@@ -45,7 +61,11 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 app.set("view engine","ejs");
 app.use(express.static(__dirname + "/public"));
-mongoose.connect(DB,{useMongoClient:true});
+// mongoose.connect(DB,{useMongoClient:true});
+// MongoClient.connect(DB,(err,client)=>{
+//   if(err) return console.log(err);
+//   db=client.db(DBNAME);
+// });
 app.use(expressSanitizer());
 app.use(methodOverride("_method"));
 // app.use(upload());
@@ -85,77 +105,66 @@ app.post('/uploadResume',upload.single('file'),(req,res)=>{
     var filename=file.filename;
     var candCv=filename,
         cvPath='./public/resume/'+candCv;
-      let transporter = nodeMailor.createTransport({
-        host: 'smtp.gmail.com',
-        port:587,
-        secure: false,
-        auth: {
-          user: EMAIL,
-          pass: PASSWORD
-        },
-        tls:{
-          rejectUnauthorized:false
-        }
-      });
-      const output = `
-          <b>Jobs Master Alert</b>
-          <p>Your CV has successfully been uploaded to our portal.</p>
-          <h3>Contact Details</h3>
-          <p>Please verify your contact details</p>
-          <ul>  
-            <li>Name: ${req.body.candname}</li>
-            <li>Email: ${req.body.candemail}</li>
-            <li>Phone: ${req.body.candphone}</li>
-            <li>City: ${req.body.candcity}</li>
-          </ul>`;
+    const output = `
+        <b>Jobs Master Alert</b>
+        <p>Your CV has successfully been uploaded to our portal.</p>
+        <h3>Contact Details</h3>
+        <p>Please verify your contact details</p>
+        <ul>  
+          <li>Name: ${req.body.candname}</li>
+          <li>Email: ${req.body.candemail}</li>
+          <li>Phone: ${req.body.candphone}</li>
+          <li>City: ${req.body.candcity}</li>
+        </ul>`;
       
-      const userRecord = `
-          <b>Jobs Master Alert</b>
-          <p>A new candidate uploaded their CV</p>
-          <h3>Contact Details</h3>
-          <ul>  
-            <li>Name: ${req.body.candname}</li>
-            <li>Email: ${req.body.candemail}</li>
-            <li>Phone: ${req.body.candphone}</li>
-            <li>City: ${req.body.candcity}</li>
-          </ul>`;
+    const userRecord = `
+        <b>Jobs Master Alert</b>
+        <p>A new candidate uploaded their CV</p>
+        <h3>Contact Details</h3>
+        <ul>  
+          <li>Name: ${req.body.candname}</li>
+          <li>Email: ${req.body.candemail}</li>
+          <li>Phone: ${req.body.candphone}</li>
+          <li>City: ${req.body.candcity}</li>
+        </ul>`;
     
-      let mailOptions= {
-        from:EMAIL,
-        to: TOMAIL,
-        subject: 'Job Masters-Candidate request',
-        text: 'Candidate Request',
-        attachments:[{
-          filename: candCv,
-          path: cvPath,
-          contentType: 'application/pdf'
-        }],
-        html: userRecord
-      };
-      let mailOptions2= {
-        from:EMAIL,
-        to: req.body.candemail,
-        subject: 'Job Master',
-        text: 'Please verify your details',
-        html: output
-      };
-      transporter.sendMail(mailOptions,(err,info)=>{
-        if(err){
-          return console.log(err);
-          // return res.redirect('/error');
-        }
-        console.log(info);
-      });
-      transporter.sendMail(mailOptions2,(err,info)=>{
-        if(err){
-          return console.log(err);
-          // return res.redirect('/error');
-        }
-        // console.log('Message: %s sent: %s',info.messageId,info.response);
-        res.redirect('/');
-      });
+    let mailOptions= {
+      from:EMAIL,
+      to: TOMAIL,
+      subject: 'Job Masters-Candidate request',
+      text: 'Candidate Request',
+      attachments:[{
+        filename: candCv,
+        path: cvPath,
+        contentType: 'application/pdf'
+      }],
+      html: userRecord
+    };
+    let mailOptions2= {
+      from:EMAIL,
+      to: req.body.candemail,
+      subject: 'Job Master',
+      text: 'Please verify your details',
+      html: output
+    };
+    transporter.sendMail(mailOptions,(err,info)=>{
+      if(err){
+        console.log(err);
+        return res.redirect('/error');
+      }
+      console.log('Message: %s sent: %s',info.messageId,info.response);
+      // console.log(info);
+    });
+    transporter.sendMail(mailOptions2,(err,info)=>{
+      if(err){
+        onsole.log(err);
+        return res.redirect('/error');
+      }
+      console.log('Message: %s sent: %s',info.messageId,info.response);
+      res.redirect('/');
+    });
     }
-  // res.redirect('/error');
+  // res.redirect('/');
 });
 
 app.post('/postjob',(req,res)=>{
@@ -256,18 +265,18 @@ app.post('/querymail',(req,res)=>{
       jobtitle=req.body.querymessage;
 
 
-  let transporter = nodeMailor.createTransport({
-    host: 'smtp.gmail.com',
-    port:587,
-    secure: false,
-    auth: {
-      user: EMAIL,
-      pass: PASSWORD
-    },
-    tls:{
-      rejectUnauthorized:false
-    }
-  });
+  // let transporter = nodeMailor.createTransport({
+  //   host: 'smtp.gmail.com',
+  //   port:587,
+  //   secure: false,
+  //   auth: {
+  //     user: EMAIL,
+  //     pass: PASSWORD
+  //   },
+  //   tls:{
+  //     rejectUnauthorized:false
+  //   }
+  // });
   const output = `
       <b>Jobs Master Alert</b>
       <p>Your query has been recieved by our officials.</p>
