@@ -83,7 +83,7 @@ app.use(methodOverride("_method"));
 require('./config/passport')(passport);
 app.use(
   session({
-    secret: SECRET,
+    secret: 'secret',
     resave: true,
     saveUninitialized: true
   })
