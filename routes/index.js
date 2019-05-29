@@ -43,54 +43,93 @@ router.get('/error', (req,res)=>{
 //   res.render('careerpage')
 // });
 
-router.get('/dashboard', ensureAuthenticated, (req, res) =>{
-    var informations=[]
-    var resumes=[]
-    db.collection('resumes').find().toArray((err,inforesult)=>{
-        if (err) return console.log(err);
-        db.collection('resumes').find({},{CV:1}).toArray((err,cvresult)=>{
+router.get('/dashboard', ensureAuthenticated, (req,res)=>{
+    res.redirect('/dashboard/1');
+});
+
+router.get('/dashboard/:page', ensureAuthenticated, (req, res) =>{
+    var perPage=9;
+    var page = req.params.page || 1;
+    
+    db.collection('resumes')
+        .find()
+        .skip((perPage * page) - perPage)
+        .limit(perPage)
+        .toArray((err,inforesult)=>{
             if (err) return console.log(err);
-            informations = inforesult.reverse();
-            
-            res.render('dashboard', {
-                user: req.user,
-                informations: informations
-            });
-        });
+            db.collection('resumes').count((err, count) => {
+                if (err) return console.log(err);
+                informations = inforesult.reverse();
+                
+                res.render('dashboard', {
+                    user: req.user,
+                    informations: informations,
+                    current: page,
+                    pages: Math.ceil(count / perPage)
+                });
+            })
     });
 });
 
-router.get('/dashboard/:id', ensureAuthenticated, (req,res) => {
+router.get('/candidate/:id', ensureAuthenticated, (req,res) => {
     var docname = new mongo.ObjectID(req.params.id);
     db.collection('resumes').findOne({'_id':docname},(err,result) => {
         if (err) return console.log(err);
 
-        res.contentType('application/pdf');
+        res.contentType(result.CV.contentType);
         res.send(result.CV.CV.buffer);
     })
 })
 
 router.post('/uploadResume', upload.single('file'),(req,res)=>{
-    const file=req.file;
-    var doc=fs.readFileSync(file.path);
-    var encoded_doc=doc.toString('base64');
-    var finalDoc={
-        contentType: file.mimetype,
-        CV: new Buffer(encoded_doc, 'base64')
-    };
-    var candComplete = {
-        name: req.body.candname,
-        email: req.body.candemail,
-        phone: req.body.candphone,
-        city: req.body.candcity,
-        CV: finalDoc,
-        dos: Date.now()
+    if(req.body.candexp) {
+        var candexp = req.body.candexp
+    } else {
+        var candexp = '0'
     }
-    db.collection('resumes').insertOne(candComplete, (err, result) => {
-        console.log(result);
-        if (err) return console.log(err);
-        console.log('Saved To Database');
-        res.redirect('/');
+    // console.log(req.body.candqualification)
+    if (req.file != null) {
+        const file=req.file;
+        var path=file.path
+        var doc=fs.readFileSync(path);
+        var encoded_doc=doc.toString('base64');
+        var finalDoc={
+            contentType: file.mimetype,
+            CV: new Buffer(encoded_doc, 'base64')
+        };
+        var candComplete = {
+            name: req.body.candname,
+            email: req.body.candemail,
+            phone: req.body.candphone,
+            city: req.body.candcity,
+            qualification: req.body.candqualification,
+            CV: finalDoc,
+            experience: candexp,
+            dos: Date.now()
+        }
+    } else {
+        var candComplete = {
+            name: req.body.candname,
+            email: req.body.candemail,
+            phone: req.body.candphone,
+            city: req.body.candcity,
+            qualification: req.body.candqualification,
+            experience: candexp,
+            dos: Date.now()
+        }
+    }
+    fs.unlink(path,(err)=>{
+        if (err) {
+            throw err
+        }
+        db.collection('resumes').insertOne(candComplete, (err, result) => {
+            if (result.CV==null) {
+                return res.redirect('/');
+            }
+            console.log('File Deleted');
+            console.log('Saved To Database');
+            res.redirect('/');
+        });
     });
 });
 
